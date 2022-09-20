@@ -1,0 +1,2 @@
+# ImageCropp
+使用安卓系统自带API完成图片裁剪马赛克缩放等功能的demo
