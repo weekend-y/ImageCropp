@@ -152,8 +152,8 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         }
     }
 
-    public void resetClip() {
-        mImage.resetClip();
+    public void resetClip(int proportion) {
+        mImage.resetClip(proportion);
         onHoming();
     }
 

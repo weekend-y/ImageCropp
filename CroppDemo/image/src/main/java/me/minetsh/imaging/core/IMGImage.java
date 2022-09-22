@@ -276,10 +276,12 @@ public class IMGImage {
         isRequestToBaseFitting = true;
     }
 
-    public void resetClip() {
+    public void resetClip(int proportion) {
         // TODO 就近旋转
         setTargetRotate(getRotate() - getRotate() % 360);
         mClipFrame.set(mFrame);
+        //同时设置比例
+        mClipWin.setProportion(proportion);
         mClipWin.reset(mClipFrame, getTargetRotate());
     }
 

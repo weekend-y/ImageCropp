@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
 
 import me.minetsh.imaging.core.util.IMGUtils;
 
@@ -58,6 +59,9 @@ public class IMGClipWindow implements IMGClip {
      * 垂直窗口比例
      */
     private static final float VERTICAL_RATIO = 0.8f;
+    public static final int PROPORTION_3_4 = 0;
+    public static final int PROPORTION_16_9 = 1;
+    private int mProportion = PROPORTION_3_4;
 
     private static final int COLOR_CELL = 0x80FFFFFF;
 
@@ -96,11 +100,21 @@ public class IMGClipWindow implements IMGClip {
         reset(imgRect.width(), imgRect.height());
     }
 
+    public void setProportion(int proportion){
+        mProportion = proportion;
+    }
+
     /**
-     * 重置裁剪
+     * 重置裁剪 初始化裁剪框范围
      */
     private void reset(float clipWidth, float clipHeight) {
         setResetting(true);
+
+        //根据比例调整
+        float[] dimensions = adjustDimensions(clipWidth, clipHeight, mProportion);
+        clipWidth = dimensions[0];
+        clipHeight = dimensions[1];
+
         mFrame.set(0, 0, clipWidth, clipHeight);
         IMGUtils.fitCenter(mWinFrame, mFrame, CLIP_MARGIN);
         mTargetFrame.set(mFrame);
@@ -113,15 +127,53 @@ public class IMGClipWindow implements IMGClip {
         return isHoming = !mTargetFrame.equals(mBaseFrame);
     }
 
+    /**
+     * 逻辑补充 因未知原因导致初始化时裁剪区域没有变化的时候，补充变化
+     */
     public void homing(float fraction) {
         if (isHoming) {
-            mFrame.set(
-                    mBaseFrame.left + (mTargetFrame.left - mBaseFrame.left) * fraction,
-                    mBaseFrame.top + (mTargetFrame.top - mBaseFrame.top) * fraction,
-                    mBaseFrame.right + (mTargetFrame.right - mBaseFrame.right) * fraction,
-                    mBaseFrame.bottom + (mTargetFrame.bottom - mBaseFrame.bottom) * fraction
-            );
+            float left = mBaseFrame.left + (mTargetFrame.left - mBaseFrame.left) * fraction;
+            float top = mBaseFrame.top + (mTargetFrame.top - mBaseFrame.top) * fraction;
+            float right = mBaseFrame.right + (mTargetFrame.right - mBaseFrame.right) * fraction;
+            float bottom = mBaseFrame.bottom + (mTargetFrame.bottom - mBaseFrame.bottom) * fraction;
+
+            if(fraction >= 1){
+                //根据比例调整
+                float width = right - left;
+                float height = bottom - top;
+                float[] dimensions = adjustDimensions(width, height, mProportion);
+                right = left + dimensions[0];
+                bottom = top + dimensions[1];
+            }
+            mFrame.set(left, top, right, bottom);
         }
+    }
+
+    private float[] adjustDimensions(float width, float height, int proportion){
+        float[] dimensions = new float[2];
+        switch (proportion)
+        {
+            case PROPORTION_3_4:            //3:4的比例
+                if((width/height) <= (float)(3/4)){    //以宽为主
+                    height = (width/3) * 4;
+                }else{
+                    width = (height/4) * 3;
+                }
+                break;
+            case PROPORTION_16_9:           //16:9的比例
+                if((width/height) <= (float)(16/9)){    //以宽为主
+                    height = (width/16) * 9;
+                }else{
+                    width = (height/9) * 16;
+                }
+                break;
+            default:
+                break;
+        }
+        dimensions[0] = width;
+        dimensions[1] = height;
+
+        return dimensions;
     }
 
     public boolean isHoming() {
@@ -255,6 +307,6 @@ public class IMGClipWindow implements IMGClip {
     }
 
     public void onScroll(Anchor anchor, float dx, float dy) {
-        anchor.move(mWinFrame, mFrame, dx, dy);
+        anchor.move(mWinFrame, mFrame, dx, dy, mProportion);
     }
 }

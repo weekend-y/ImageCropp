@@ -168,8 +168,8 @@ public class IMGEditActivity extends IMGEditBaseActivity {
     }
 
     @Override
-    public void onResetClipClick() {
-        mImgView.resetClip();
+    public void onResetClipClick(int proportion) {
+        mImgView.resetClip(proportion);
     }
 
     @Override

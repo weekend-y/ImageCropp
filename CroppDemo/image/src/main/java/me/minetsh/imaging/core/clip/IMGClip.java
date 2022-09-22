@@ -1,6 +1,10 @@
 package me.minetsh.imaging.core.clip;
 
 import android.graphics.RectF;
+import android.util.Log;
+
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_3_4;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_16_9;
 
 /**
  * Created by felix on 2017/11/28 下午6:15.
@@ -91,7 +95,7 @@ public interface IMGClip {
             this.v = v;
         }
 
-        public void move(RectF win, RectF frame, float dx, float dy) {
+        public void move(RectF win, RectF frame, float dx, float dy, int proportion) {
             float[] maxFrame = cohesion(win, CLIP_MARGIN);
             float[] minFrame = cohesion(frame, CLIP_FRAME_MIN);
             float[] theFrame = cohesion(frame, 0);
@@ -107,7 +111,41 @@ public interface IMGClip {
                 }
             }
 
+            //根据比例调整
+            float width = theFrame[1] - theFrame[0];
+            float height = theFrame[3] - theFrame[2];
+            float[] dimensions = adjustDimensions(width, height, proportion);
+            theFrame[1] = theFrame[0] + dimensions[0];
+            theFrame[3] = theFrame[2] + dimensions[1];
+
             frame.set(theFrame[0], theFrame[2], theFrame[1], theFrame[3]);
+        }
+
+        private float[] adjustDimensions(float width, float height, int proportion){
+            float[] dimensions = new float[2];
+            switch (proportion)
+            {
+                case PROPORTION_3_4:            //3:4的比例
+                    if((width/height) <= (float)(3/4)){    //以宽为主
+                        height = (width/3) * 4;
+                    }else{
+                        width = (height/4) * 3;
+                    }
+                    break;
+                case PROPORTION_16_9:           //16:9的比例
+                    if((width/height) <= (float)(16/9)){    //以宽为主
+                        height = (width/16) * 9;
+                    }else{
+                        width = (height/9) * 16;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            dimensions[0] = width;
+            dimensions[1] = height;
+
+            return dimensions;
         }
 
         public static float revise(float v, float min, float max) {

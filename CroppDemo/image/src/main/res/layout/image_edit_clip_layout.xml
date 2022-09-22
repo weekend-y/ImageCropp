@@ -12,63 +12,58 @@
         android:layout_weight="20"
         android:gravity="bottom"
         android:background="@drawable/image_bg_bottom"
-        android:orientation="vertical">
+        android:orientation="horizontal">
+
 
         <ImageButton
+            android:id="@+id/ib_clip_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="40dp"
+            android:background="@null"
+            android:contentDescription="@string/image_cancel"
+            android:onClick="onClick"
+            android:src="@drawable/image_btn_cancel" />
+
+        <TextView
             android:id="@+id/ib_clip_rotate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginStart="20dp"
-            android:background="@null"
-            android:contentDescription="@string/image_rotate"
+            android:layout_marginLeft="50dp"
+            android:layout_marginBottom="50dp"
+            android:background="@color/image_color_purple"
+            android:clickable="true"
+            android:focusable="true"
             android:onClick="onClick"
-            android:src="@drawable/image_btn_rotate" />
+            android:text="3:4"
+            android:textColor="@color/image_color_black"
+            android:textSize="16sp" />
 
-        <FrameLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_clip_reset"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="20dp"
-            android:paddingTop="16dp">
+            android:layout_marginLeft="90dp"
+            android:layout_marginBottom="50dp"
+            android:background="@color/image_color_purple"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="onClick"
+            android:text="16:9"
+            android:textColor="@color/image_color_black"
+            android:textSize="16sp" />
 
-            <ImageButton
-                android:id="@+id/ib_clip_cancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginLeft="40dp"
-                android:layout_marginStart="40dp"
-                android:background="@null"
-                android:contentDescription="@string/image_cancel"
-                android:onClick="onClick"
-                android:src="@drawable/image_btn_cancel" />
-
-            <TextView
-                android:id="@+id/tv_clip_reset"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:clickable="true"
-                android:focusable="true"
-                android:onClick="onClick"
-                android:text="@string/image_reset"
-                android:textColor="@color/image_color_text"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/ib_clip_done"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|end"
-                android:layout_marginEnd="40dp"
-                android:layout_marginRight="40dp"
-                android:background="@null"
-                android:contentDescription="@string/image_done"
-                android:onClick="onClick"
-                android:src="@drawable/image_btn_ok" />
-
-        </FrameLayout>
+        <ImageButton
+            android:id="@+id/ib_clip_done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="40dp"
+            android:background="@null"
+            android:contentDescription="@string/image_done"
+            android:onClick="onClick"
+            android:src="@drawable/image_btn_ok" />
 
     </LinearLayout>
 

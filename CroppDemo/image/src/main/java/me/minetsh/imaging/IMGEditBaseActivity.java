@@ -12,6 +12,8 @@ import me.minetsh.imaging.core.IMGMode;
 import me.minetsh.imaging.core.IMGText;
 import me.minetsh.imaging.view.IMGColorGroup;
 import me.minetsh.imaging.view.IMGView;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_3_4;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_16_9;
 
 /**
  * Created by felix on 2017/12/5 下午3:08.
@@ -93,10 +95,10 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
             onCancelClipClick();
         } else if (vid == R.id.ib_clip_done) {
             onDoneClipClick();
-        } else if (vid == R.id.tv_clip_reset) {
-            onResetClipClick();
-        } else if (vid == R.id.ib_clip_rotate) {
-            onRotateClipClick();
+        } else if (vid == R.id.tv_clip_reset) {     //16:9比例
+            onResetClipClick(PROPORTION_16_9);
+        } else if (vid == R.id.ib_clip_rotate) {    //3:4比例
+            onResetClipClick(PROPORTION_3_4);
         }
     }
 
@@ -171,7 +173,7 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
 
     public abstract void onDoneClipClick();
 
-    public abstract void onResetClipClick();
+    public abstract void onResetClipClick(int proportion);
 
     public abstract void onRotateClipClick();
 

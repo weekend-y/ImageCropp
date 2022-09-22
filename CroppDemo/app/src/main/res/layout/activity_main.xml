@@ -8,13 +8,21 @@
     tools:background="@color/white">
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        android:textSize="30dp"
+        android:text="欢迎使用图片编辑器"/>
+
+    <TextView
         android:id="@+id/sdv_tv_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
         android:background="@color/purple_200"
-        android:textSize="30dp"
-        android:text="图片编辑功能"/>
+        android:textSize="20dp"
+        android:text="点击进入图片编辑"/>
 
 
 </LinearLayout>
