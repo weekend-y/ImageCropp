@@ -15,10 +15,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        sdv_tv_edit.setOnClickListener {
+        ll_pic_edit.setOnClickListener {
             startActivity(Intent(
-                this, ImageEditSampleActivity::class.java
-            ))
+                this, ImageEditSampleActivity::class.java).apply {
+                    putExtra("function", "edit")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+        }
+
+        ll_pic_crop.setOnClickListener {
+            startActivity(Intent(
+                this, ImageEditSampleActivity::class.java).apply {
+                putExtra("function", "crop")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            )
         }
     }
 }

@@ -33,7 +33,6 @@ public class IMGEditActivity extends IMGEditBaseActivity {
 
     @Override
     public void onCreated() {
-
     }
 
     @Override
@@ -49,7 +48,6 @@ public class IMGEditActivity extends IMGEditBaseActivity {
         }
 
         IMGDecoder decoder = null;
-
         String path = uri.getPath();
         if (!TextUtils.isEmpty(path)) {
             switch (uri.getScheme()) {
@@ -57,7 +55,8 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                     decoder = new IMGAssetFileDecoder(this, uri);
                     break;
                 case "file":
-                    decoder = new IMGFileDecoder(uri);
+                case "content":
+                    decoder = new IMGFileDecoder(this,uri);
                     break;
             }
         }
@@ -158,18 +157,55 @@ public class IMGEditActivity extends IMGEditBaseActivity {
     @Override
     public void onCancelClipClick() {
         mImgView.cancelClip();
-        setOpDisplay(mImgView.getMode() == IMGMode.CLIP ? OP_CLIP : OP_NORMAL);
+        if(mIsSimpleCropMode)
+            finish();
+        else
+            setOpDisplay(mImgView.getMode() == IMGMode.CLIP ? OP_CLIP : OP_NORMAL);
     }
 
     @Override
     public void onDoneClipClick() {
         mImgView.doClip();
-        setOpDisplay(mImgView.getMode() == IMGMode.CLIP ? OP_CLIP : OP_NORMAL);
+        if(!mIsSimpleCropMode)
+            setOpDisplay(mImgView.getMode() == IMGMode.CLIP ? OP_CLIP : OP_NORMAL);
+        else{
+            String path = getIntent().getStringExtra(EXTRA_IMAGE_SAVE_PATH);
+            if (!TextUtils.isEmpty(path)) {
+                Bitmap bitmap = mImgView.saveBitmap();
+                if (bitmap != null) {
+                    FileOutputStream fout = null;
+                    try {
+                        fout = new FileOutputStream(path);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fout);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (fout != null) {
+                            try {
+                                fout.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    setResult(RESULT_OK);
+                    finish();
+                    return;
+                }
+            }
+            setResult(RESULT_CANCELED);
+            finish();
+        }
     }
 
     @Override
     public void onResetClipClick() {
         mImgView.resetClip();
+    }
+
+    @Override
+    public void onResetClipClick(int proportion) {
+        mImgView.resetClip(proportion);
     }
 
     @Override

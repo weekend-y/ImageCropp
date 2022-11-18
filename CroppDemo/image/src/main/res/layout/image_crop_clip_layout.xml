@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="bottom"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="136dp"
+        android:background="#FF000000"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/ib_clip_cancel"
+            android:layout_width="58dp"
+            android:layout_height="27dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="17dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="12dp"
+            android:gravity="center"
+            android:background="@android:color/transparent"
+            android:onClick="onClick"
+            android:text="取消"
+            android:textColor="@color/image_color_white"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_proportion_3_4"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="102dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="23dp"
+            android:gravity="center"
+            android:background="@drawable/bg_btn_proportion_vertical"
+            android:clickable="true"
+            android:onClick="onClick"
+            android:text="3:4"
+            android:textColor="@color/image_color_white"
+            android:textSize="11sp" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="85dp"
+            android:background="#33FFFFFF"/>
+
+        <TextView
+            android:id="@+id/tv_proportion_16_9"
+            android:layout_width="48dp"
+            android:layout_height="27dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="93dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:background="@drawable/bg_btn_proportion_horizontal"
+            android:clickable="true"
+            android:onClick="onClick"
+            android:text="16:9"
+            android:textColor="@color/image_color_white"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/ib_clip_done"
+            android:layout_width="58dp"
+            android:layout_height="27dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="17dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="12dp"
+            android:gravity="center"
+            android:background="@drawable/shape_button_gradient_b756c2_7652cb"
+            android:onClick="onClick"
+            android:text="确定"
+            android:textColor="@color/image_color_white"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+</LinearLayout>

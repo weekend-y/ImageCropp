@@ -28,6 +28,7 @@ import java.util.List;
 public class IMGImage {
 
     private static final String TAG = "IMGImage";
+    private static final float LIMIT_TOUCH_MAX_SCALE = 30;
 
     private Bitmap mImage, mMosaicImage;
 
@@ -280,6 +281,15 @@ public class IMGImage {
         // TODO 就近旋转
         setTargetRotate(getRotate() - getRotate() % 360);
         mClipFrame.set(mFrame);
+        mClipWin.reset(mClipFrame, getTargetRotate());
+    }
+
+    public void resetClip(int proportion) {
+        // TODO 就近旋转
+        setTargetRotate(getRotate() - getRotate() % 360);
+        mClipFrame.set(mFrame);
+        //同时设置比例
+        mClipWin.setProportion(proportion);
         mClipWin.reset(mClipFrame, getTargetRotate());
     }
 
@@ -614,12 +624,16 @@ public class IMGImage {
         moveToBackground(mForeSticker);
         if (mMode == IMGMode.CLIP) {
             mAnchor = mClipWin.getAnchor(x, y);
+            mClipWin.setMoving(true);
         }
     }
 
     public void onTouchUp(float scrollX, float scrollY) {
         if (mAnchor != null) {
             mAnchor = null;
+        }
+        if (mMode == IMGMode.CLIP) {
+            mClipWin.setMoving(false);
         }
     }
 
@@ -696,8 +710,14 @@ public class IMGImage {
                 || Math.min(mClipFrame.width(), mClipFrame.height()) <= MIN_SIZE) {
             factor += (1 - factor) / 2;
         }
+        float realFactor = factor;
 
-        M.setScale(factor, factor, focusX, focusY);
+        float scale = mFrame.width() * realFactor / mImage.getWidth();
+        if (scale > LIMIT_TOUCH_MAX_SCALE){
+            realFactor = mImage.getWidth() * LIMIT_TOUCH_MAX_SCALE / mFrame.width();
+        }
+
+        M.setScale(realFactor, realFactor, focusX, focusY);
         M.mapRect(mFrame);
         M.mapRect(mClipFrame);
 
@@ -711,7 +731,7 @@ public class IMGImage {
             M.mapRect(sticker.getFrame());
             float tPivotX = sticker.getX() + sticker.getPivotX();
             float tPivotY = sticker.getY() + sticker.getPivotY();
-            sticker.addScale(factor);
+            sticker.addScale(realFactor);
             sticker.setX(sticker.getX() + sticker.getFrame().centerX() - tPivotX);
             sticker.setY(sticker.getY() + sticker.getFrame().centerY() - tPivotY);
         }
@@ -769,6 +789,12 @@ public class IMGImage {
     public void release() {
         if (mImage != null && !mImage.isRecycled()) {
             mImage.recycle();
+        }
+    }
+
+    public void setProportion(int proportion){
+        if(mClipWin != null){
+            mClipWin.setProportion(proportion);
         }
     }
 

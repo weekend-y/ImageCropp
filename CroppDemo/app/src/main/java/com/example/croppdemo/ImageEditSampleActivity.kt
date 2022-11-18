@@ -15,7 +15,7 @@ import java.util.*
 
 
 class ImageEditSampleActivity : AppCompatActivity() {
-
+    private val mFunction by lazy { intent.getSerializableExtra("function") as? String }
     private var mImageFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +47,7 @@ class ImageEditSampleActivity : AppCompatActivity() {
             startActivityForResult(
                     Intent(this, IMGEditActivity::class.java)
                             .putExtra(IMGEditActivity.EXTRA_IMAGE_URI, image.uri)
+                            .putExtra(IMGEditActivity.EXTRA_IMAGE_FUNCTION, mFunction)
                             .putExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH, mImageFile?.absolutePath),
                     REQ_IMAGE_EDIT
             )

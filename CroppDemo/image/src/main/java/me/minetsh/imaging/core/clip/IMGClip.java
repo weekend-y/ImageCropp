@@ -2,6 +2,9 @@ package me.minetsh.imaging.core.clip;
 
 import android.graphics.RectF;
 
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_16_9;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_3_4;
+
 /**
  * Created by felix on 2017/11/28 下午6:15.
  */
@@ -11,7 +14,7 @@ public interface IMGClip {
     /**
      * 裁剪区域的边距
      */
-    float CLIP_MARGIN = 60f;
+    float CLIP_MARGIN = 20f;
 
     /**
      * 角尺寸
@@ -26,17 +29,17 @@ public interface IMGClip {
     /**
      * 内边厚度
      */
-    float CLIP_THICKNESS_CELL = 3f;
+    float CLIP_THICKNESS_CELL = 1f;
 
     /**
      * 外边框厚度
      */
-    float CLIP_THICKNESS_FRAME = 8f;
+    float CLIP_THICKNESS_FRAME = 2f;
 
     /**
      * 角边厚度
      */
-    float CLIP_THICKNESS_SEWING = 14f;
+    float CLIP_THICKNESS_SEWING = 10f;
 
     /**
      * 比例尺，用于计算出 {0, width, 1/3 width, 2/3 width} & {0, height, 1/3 height, 2/3 height}
@@ -108,6 +111,59 @@ public interface IMGClip {
             }
 
             frame.set(theFrame[0], theFrame[2], theFrame[1], theFrame[3]);
+        }
+
+        public void move(RectF win, RectF frame, float dx, float dy, int proportion) {
+            float[] maxFrame = cohesion(win, CLIP_MARGIN);
+            float[] minFrame = cohesion(frame, CLIP_FRAME_MIN);
+            float[] theFrame = cohesion(frame, 0);
+
+            float[] dxy = {dx, 0, dy};
+            for (int i = 0; i < 4; i++) {
+                if (((1 << i) & v) != 0) {
+
+                    int pn = PN[i & 1];
+
+                    theFrame[i] = pn * revise(pn * (theFrame[i] + dxy[i & 2]),
+                            pn * maxFrame[i], pn * minFrame[i + PN[i & 1]]);
+                }
+            }
+
+            //根据比例调整
+            float width = theFrame[1] - theFrame[0];
+            float height = theFrame[3] - theFrame[2];
+            float[] dimensions = adjustDimensions(width, height, proportion);
+            theFrame[1] = theFrame[0] + dimensions[0];
+            theFrame[3] = theFrame[2] + dimensions[1];
+
+            frame.set(theFrame[0], theFrame[2], theFrame[1], theFrame[3]);
+        }
+
+        private float[] adjustDimensions(float width, float height, int proportion){
+            float[] dimensions = new float[2];
+            switch (proportion)
+            {
+                case PROPORTION_3_4:            //3:4的比例
+                    if((width/height) <= (3.0f/4.0f)){    //以宽为主
+                        height = (width/3) * 4;
+                    }else{
+                        width = (height/4) * 3;
+                    }
+                    break;
+                case PROPORTION_16_9:           //16:9的比例
+                    if((width/height) <= (16.0f/9.0f)){    //以宽为主
+                        height = (width/16) * 9;
+                    }else{
+                        width = (height/9) * 16;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            dimensions[0] = width;
+            dimensions[1] = height;
+
+            return dimensions;
         }
 
         public static float revise(float v, float min, float max) {

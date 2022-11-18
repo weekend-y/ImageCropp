@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 
+import me.minetsh.imaging.IMGEditActivity;
 import me.minetsh.imaging.core.IMGImage;
 import me.minetsh.imaging.core.IMGMode;
 import me.minetsh.imaging.core.IMGPath;
@@ -30,6 +31,10 @@ import me.minetsh.imaging.core.anim.IMGHomingAnimator;
 import me.minetsh.imaging.core.homing.IMGHoming;
 import me.minetsh.imaging.core.sticker.IMGSticker;
 import me.minetsh.imaging.core.sticker.IMGStickerPortrait;
+
+
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_16_9;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_3_4;
 
 /**
  * Created by felix on 2017/11/14 下午6:43.
@@ -57,6 +62,10 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
     private Paint mDoodlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private Paint mMosaicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private boolean initFlag = false;
+
+    private int  mProportion = PROPORTION_3_4;
 
     private static final boolean DEBUG = true;
 
@@ -154,6 +163,11 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
 
     public void resetClip() {
         mImage.resetClip();
+        onHoming();
+    }
+
+    public void resetClip(int proportion) {
+        mImage.resetClip(proportion);
         onHoming();
     }
 
@@ -279,8 +293,44 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         m.setScale(scale, scale, frame.left, frame.top);
         m.mapRect(frame);
 
-        Bitmap bitmap = Bitmap.createBitmap(Math.round(frame.width()),
-                Math.round(frame.height()), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap;
+        if(IMGEditActivity.mIsSimpleCropMode){      //单裁剪固定比例模式
+            //严格的比例换算
+            int width = Math.round(frame.width());      //先取整
+            int height = Math.round(frame.height());
+            int remWidth,remHeight;
+            switch(mProportion){
+                case PROPORTION_3_4:
+                    remWidth = width % 3;           //计算宽和高 与 比例权重 的余数
+                    remHeight = height % 4;
+                    if(remWidth <= remHeight) {         //以余数较小的宽或高为减方，
+                        width -= remWidth;              //减掉余数，得到能与 比例权重 整除的最接近的宽或高
+                        height = width*4/3;             //进一步得到严格比例换算后的宽或高
+                    }else {
+                        height -= remHeight;
+                        width = height*3/4;
+                    }
+                    break;
+                case PROPORTION_16_9:
+                    remWidth = width % 16;
+                    remHeight = height % 9;
+                    if(remWidth <= remHeight) {         //以余数较小的宽或高为减法方，
+                        width -= remWidth;              //减掉余数，得到能与 比例权重 整除的最接近的宽或高
+                        height = width*9/16;             //进一步得到严格比例换算后的宽或高
+                    }else {
+                        height -= remHeight;
+                        width = height*16/9;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        }else{
+            bitmap = Bitmap.createBitmap(Math.round(frame.width()),
+                    Math.round(frame.height()), Bitmap.Config.ARGB_8888);
+        }
 
         Canvas canvas = new Canvas(bitmap);
 
@@ -298,7 +348,21 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         super.onLayout(changed, left, top, right, bottom);
         if (changed) {
             mImage.onWindowChanged(right - left, bottom - top);
+
+            if(IMGEditActivity.mIsSimpleCropMode) {      //单裁剪固定比例模式
+                if(initFlag == false){
+                    if(mImage != null){
+                        mImage.setProportion(mProportion);
+                    }
+                    setMode(IMGMode.CLIP);
+                    initFlag = true;
+                }
+            }
         }
+    }
+
+    public void setProportion(int proportion){
+        mProportion = proportion;
     }
 
     public <V extends View & IMGSticker> void addStickerView(V stickerView, LayoutParams params) {

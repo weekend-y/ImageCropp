@@ -6,6 +6,8 @@ package me.minetsh.imaging.core.homing;
 
 public class IMGHoming {
 
+    private static final float LIMIT_FINAL_MAX_SCALE = 26;
+
     public float x, y;
 
     public float scale;
@@ -17,6 +19,7 @@ public class IMGHoming {
         this.y = y;
         this.scale = scale;
         this.rotate = rotate;
+        limitScale();
     }
 
     public void set(float x, float y, float scale, float rotate) {
@@ -24,18 +27,27 @@ public class IMGHoming {
         this.y = y;
         this.scale = scale;
         this.rotate = rotate;
+        limitScale();
+    }
+
+    private void limitScale() {
+        if (this.scale > LIMIT_FINAL_MAX_SCALE) {
+            this.scale = LIMIT_FINAL_MAX_SCALE;
+        }
     }
 
     public void concat(IMGHoming homing) {
         this.scale *= homing.scale;
         this.x += homing.x;
         this.y += homing.y;
+        limitScale();
     }
 
     public void rConcat(IMGHoming homing) {
         this.scale *= homing.scale;
         this.x -= homing.x;
         this.y -= homing.y;
+        limitScale();
     }
 
     public static boolean isRotate(IMGHoming sHoming, IMGHoming eHoming) {

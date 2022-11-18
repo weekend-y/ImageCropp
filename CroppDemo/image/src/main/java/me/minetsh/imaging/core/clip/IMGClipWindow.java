@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 
+import me.minetsh.imaging.IMGEditActivity;
 import me.minetsh.imaging.core.util.IMGUtils;
 
 /**
@@ -48,6 +49,11 @@ public class IMGClipWindow implements IMGClip {
 
     private boolean isHoming = false;
 
+    /**
+     * 是否在移动裁剪框中
+     */
+    private boolean isMoving = false;
+
     private Matrix M = new Matrix();
 
     private Path mShadePath = new Path();
@@ -58,8 +64,11 @@ public class IMGClipWindow implements IMGClip {
      * 垂直窗口比例
      */
     private static final float VERTICAL_RATIO = 0.8f;
+    public static final int PROPORTION_3_4 = 0;
+    public static final int PROPORTION_16_9 = 1;
+    private int mProportion = PROPORTION_3_4;
 
-    private static final int COLOR_CELL = 0x80FFFFFF;
+    private static final int COLOR_CELL = 0x99FFFFFF;
 
     private static final int COLOR_FRAME = Color.WHITE;
 
@@ -96,11 +105,23 @@ public class IMGClipWindow implements IMGClip {
         reset(imgRect.width(), imgRect.height());
     }
 
+    public void setProportion(int proportion){
+        mProportion = proportion;
+    }
+
     /**
      * 重置裁剪
      */
     private void reset(float clipWidth, float clipHeight) {
         setResetting(true);
+
+        if(IMGEditActivity.mIsSimpleCropMode){
+            //根据比例调整
+            float[] dimensions = adjustDimensions(clipWidth, clipHeight, mProportion);
+            clipWidth = dimensions[0];
+            clipHeight = dimensions[1];
+        }
+
         mFrame.set(0, 0, clipWidth, clipHeight);
         IMGUtils.fitCenter(mWinFrame, mFrame, CLIP_MARGIN);
         mTargetFrame.set(mFrame);
@@ -113,15 +134,62 @@ public class IMGClipWindow implements IMGClip {
         return isHoming = !mTargetFrame.equals(mBaseFrame);
     }
 
+    /**
+     * 逻辑补充 因未知原因导致初始化时裁剪区域没有变化的时候，补充变化
+     */
     public void homing(float fraction) {
         if (isHoming) {
-            mFrame.set(
-                    mBaseFrame.left + (mTargetFrame.left - mBaseFrame.left) * fraction,
-                    mBaseFrame.top + (mTargetFrame.top - mBaseFrame.top) * fraction,
-                    mBaseFrame.right + (mTargetFrame.right - mBaseFrame.right) * fraction,
-                    mBaseFrame.bottom + (mTargetFrame.bottom - mBaseFrame.bottom) * fraction
-            );
+            if(IMGEditActivity.mIsSimpleCropMode){
+                float left = mBaseFrame.left + (mTargetFrame.left - mBaseFrame.left) * fraction;
+                float top = mBaseFrame.top + (mTargetFrame.top - mBaseFrame.top) * fraction;
+                float right = mBaseFrame.right + (mTargetFrame.right - mBaseFrame.right) * fraction;
+                float bottom = mBaseFrame.bottom + (mTargetFrame.bottom - mBaseFrame.bottom) * fraction;
+
+                if(fraction >= 1){
+                    //根据比例调整
+                    float width = right - left;
+                    float height = bottom - top;
+                    float[] dimensions = adjustDimensions(width, height, mProportion);
+                    right = left + dimensions[0];
+                    bottom = top + dimensions[1];
+                }
+                mFrame.set(left, top, right, bottom);
+            }else{
+                mFrame.set(
+                        mBaseFrame.left + (mTargetFrame.left - mBaseFrame.left) * fraction,
+                        mBaseFrame.top + (mTargetFrame.top - mBaseFrame.top) * fraction,
+                        mBaseFrame.right + (mTargetFrame.right - mBaseFrame.right) * fraction,
+                        mBaseFrame.bottom + (mTargetFrame.bottom - mBaseFrame.bottom) * fraction
+                );
+            }
         }
+    }
+
+    private float[] adjustDimensions(float width, float height, int proportion){
+        float[] dimensions = new float[2];
+        switch (proportion)
+        {
+            case PROPORTION_3_4:            //3:4的比例
+                if((width/height) <= (3.0f/4.0f)){    //以宽为主
+                    height = (width/3) * 4;
+                }else{
+                    width = (height/4) * 3;
+                }
+                break;
+            case PROPORTION_16_9:           //16:9的比例
+                if((width/height) <= (16.0f/9.0f)){    //以宽为主
+                    height = (width/16) * 9;
+                }else{
+                    width = (height/9) * 16;
+                }
+                break;
+            default:
+                break;
+        }
+        dimensions[0] = width;
+        dimensions[1] = height;
+
+        return dimensions;
     }
 
     public boolean isHoming() {
@@ -138,6 +206,14 @@ public class IMGClipWindow implements IMGClip {
 
     public void setClipping(boolean clipping) {
         isClipping = clipping;
+    }
+
+    public boolean isMoving() {
+        return isMoving;
+    }
+
+    public void setMoving(boolean moving) {
+        isMoving = moving;
     }
 
     public boolean isResetting() {
@@ -193,27 +269,38 @@ public class IMGClipWindow implements IMGClip {
             }
         }
 
+        //画九宫格内框
         for (int i = 0; i < mCells.length; i++) {
             mCells[i] = mBaseSizes[i & 1][CLIP_CELL_STRIDES >>> (i << 1) & 3];
         }
-
-        for (int i = 0; i < mCorners.length; i++) {
-            mCorners[i] = mBaseSizes[i & 1][CLIP_CORNER_STRIDES >>> i & 1]
-                    + CLIP_CORNER_SIZES[CLIP_CORNERS[i] & 3] + CLIP_CORNER_STEPS[CLIP_CORNERS[i] >> 2];
-        }
-
         canvas.translate(mFrame.left, mFrame.top);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(COLOR_CELL);
         mPaint.setStrokeWidth(CLIP_THICKNESS_CELL);
-        canvas.drawLines(mCells, mPaint);
+        if(isMoving){
+            canvas.drawLines(mCells, mPaint);       //移动过程中才显示九宫格画线
+        }
 
+        //画裁剪外框
         canvas.translate(-mFrame.left, -mFrame.top);
         mPaint.setColor(COLOR_FRAME);
         mPaint.setStrokeWidth(CLIP_THICKNESS_FRAME);
         canvas.drawRect(mFrame, mPaint);
 
-        canvas.translate(mFrame.left, mFrame.top);
+
+        //画四个边角
+        //四个边角调整为内角，需要加一些调整,将宽高缩小，再使用原有逻辑，即可变为内角--20220930
+        float[] size2 = {mFrame.width()-2*(CLIP_THICKNESS_SEWING - CLIP_THICKNESS_FRAME), mFrame.height()-2*(CLIP_THICKNESS_SEWING - CLIP_THICKNESS_FRAME)};
+        for (int i = 0; i < mBaseSizes.length; i++) {
+            for (int j = 0; j < mBaseSizes[i].length; j++) {
+                mBaseSizes[i][j] = size2[i] * CLIP_SIZE_RATIO[j];
+            }
+        }
+        for (int i = 0; i < mCorners.length; i++) {
+            mCorners[i] = mBaseSizes[i & 1][CLIP_CORNER_STRIDES >>> i & 1]
+                    + CLIP_CORNER_SIZES[CLIP_CORNERS[i] & 3] + CLIP_CORNER_STEPS[CLIP_CORNERS[i] >> 2];
+        }
+        canvas.translate(mFrame.left+(CLIP_THICKNESS_SEWING-CLIP_THICKNESS_FRAME), mFrame.top+(CLIP_THICKNESS_SEWING-CLIP_THICKNESS_FRAME));
         mPaint.setColor(COLOR_CORNER);
         mPaint.setStrokeWidth(CLIP_THICKNESS_SEWING);
         canvas.drawLines(mCorners, mPaint);
@@ -255,6 +342,9 @@ public class IMGClipWindow implements IMGClip {
     }
 
     public void onScroll(Anchor anchor, float dx, float dy) {
-        anchor.move(mWinFrame, mFrame, dx, dy);
+        if(IMGEditActivity.mIsSimpleCropMode)
+            anchor.move(mWinFrame, mFrame, dx, dy, mProportion);
+        else
+            anchor.move(mWinFrame, mFrame, dx, dy);
     }
 }

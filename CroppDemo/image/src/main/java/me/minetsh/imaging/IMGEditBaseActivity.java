@@ -6,12 +6,16 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 import me.minetsh.imaging.core.IMGMode;
 import me.minetsh.imaging.core.IMGText;
 import me.minetsh.imaging.view.IMGColorGroup;
 import me.minetsh.imaging.view.IMGView;
+
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_16_9;
+import static me.minetsh.imaging.core.clip.IMGClipWindow.PROPORTION_3_4;
 
 /**
  * Created by felix on 2017/12/5 下午3:08.
@@ -33,6 +37,8 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
 
     private ViewSwitcher mOpSwitcher, mOpSubSwitcher;
 
+    private TextView mBtHorizontal, mBtVertical;
+
     public static final int OP_HIDE = -1;
 
     public static final int OP_NORMAL = 0;
@@ -43,15 +49,30 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
 
     public static final int OP_SUB_MOSAIC = 1;
 
+    public static final String EXTRA_IMAGE_FUNCTION = "IMAGE_FUNCTION";
+
+    public static boolean mIsSimpleCropMode = false;       //是否单裁剪模式，固定比例选择
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bitmap bitmap = getBitmap();
         if (bitmap != null) {
-            setContentView(R.layout.image_edit_activity);
+            if(getIntent().getStringExtra(EXTRA_IMAGE_FUNCTION).equals("crop")){
+                mIsSimpleCropMode = true;
+                setContentView(R.layout.image_crop_activity);
+            }else{
+                mIsSimpleCropMode = false;
+                setContentView(R.layout.image_edit_activity);
+            }
             initViews();
-            mImgView.setImageBitmap(bitmap);
+            if(mImgView != null){
+                mImgView.setImageBitmap(bitmap);
+            }
             onCreated();
+            if(mIsSimpleCropMode){
+                initCrop();
+            }
         } else finish();
     }
 
@@ -70,6 +91,21 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
         mColorGroup.setOnCheckedChangeListener(this);
 
         mLayoutOpSub = findViewById(R.id.layout_op_sub);
+
+        mBtHorizontal = findViewById(R.id.tv_proportion_16_9);
+        mBtVertical = findViewById(R.id.tv_proportion_3_4);
+    }
+
+    public void initCrop() {
+        //默认3:4比例
+        if((mBtHorizontal != null) && (mBtVertical != null)){
+            mBtHorizontal.setSelected(false);
+            mBtVertical.setSelected(true);
+        }
+
+        if(mImgView != null){
+            mImgView.setProportion(PROPORTION_3_4);
+        }
     }
 
     @Override
@@ -97,6 +133,24 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
             onResetClipClick();
         } else if (vid == R.id.ib_clip_rotate) {
             onRotateClipClick();
+        } else if (vid == R.id.tv_proportion_16_9) {     //16:9比例
+            if(mImgView != null){
+                mImgView.setProportion(PROPORTION_16_9);
+            }
+            onResetClipClick(PROPORTION_16_9);
+            if((mBtHorizontal != null) && (mBtVertical != null)){
+                mBtHorizontal.setSelected(true);
+                mBtVertical.setSelected(false);
+            }
+        } else if (vid == R.id.tv_proportion_3_4) {    //3:4比例
+            if(mImgView != null){
+                mImgView.setProportion(PROPORTION_3_4);
+            }
+            onResetClipClick(PROPORTION_3_4);
+            if((mBtHorizontal != null) && (mBtVertical != null)){
+                mBtHorizontal.setSelected(false);
+                mBtVertical.setSelected(true);
+            }
         }
     }
 
@@ -172,6 +226,8 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
     public abstract void onDoneClipClick();
 
     public abstract void onResetClipClick();
+
+    public abstract void onResetClipClick(int proportion);
 
     public abstract void onRotateClipClick();
 
