@@ -219,10 +219,10 @@ public class IMGFileDecoder extends IMGDecoder {
 
     public static int getBitmapDegree(File file) {
         int degree = 0;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return degree;
+        if (Build.VERSION.SDK_INT < 29) return degree;
         try {
             // 从指定路径下读取图片，并获取其EXIF信息
-            ExifInterface exifInterface = new ExifInterface(file);
+            ExifInterface exifInterface = new ExifInterface(String.valueOf(file));
             // 获取图片的旋转信息
             int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                     ExifInterface.ORIENTATION_NORMAL);

@@ -75,6 +75,8 @@ public class IMGGalleryActivity extends AppCompatActivity implements View.OnClic
 
     private static final int REQ_STORAGE = 1;
 
+    private ViewStub stub;
+
     private static final int[] ATTRS = new int[]{
             R.attr.image_gallery_span_count,
             R.attr.image_gallery_select_shade
@@ -89,7 +91,7 @@ public class IMGGalleryActivity extends AppCompatActivity implements View.OnClic
         setContentView(R.layout.image_gallery_activity);
 
         if (!IMGPermissionUtils.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            ViewStub stub = findViewById(R.id.vs_tips_stub);
+            stub = findViewById(R.id.vs_tips_stub);
             View view = stub.inflate();
             View button = view.findViewById(R.id.image_btn_enable);
             if (button != null) {
@@ -225,6 +227,7 @@ public class IMGGalleryActivity extends AppCompatActivity implements View.OnClic
             showGalleryMenu();
         } else if (v.getId() == R.id.image_btn_enable) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_STORAGE);
+            stub.setVisibility(View.GONE);
         }
     }
 
